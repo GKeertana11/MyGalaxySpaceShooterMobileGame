@@ -6,13 +6,16 @@ public class ShipScript : MonoBehaviour
 {
 
     #region PUBLIC VARIABLES
+    public Transform launcher;
     public float rotatiopnSpeed=10f;//The rotation of ship in degrees per second.
     public float movementSpeed=2f;//The movement of ship by force applied Force applied in second.
     #endregion
 
     #region PRIVATE VARIABLES
     private bool isRotating = false;
-    private const string TURN_COUROUTINE_FUNCTION = "Turn_RotateAndMoveTowardTouch";
+    private GameManager gameManager;
+
+    private const string TURN_COUROUTINE_FUNCTION = "Turn_RotateTowardsTap";
 
     #endregion
 
@@ -37,6 +40,12 @@ public class ShipScript : MonoBehaviour
     {
         MyMobileGalaxyShooter.UserInputHandler.onTouchAction -= TowardsTouch;
     }
+    private void Shoot()
+    {
+        Bullet bullet = PoolManager.Instance.Spawn(Constants.BULLET_PREFAB_NAME).GetComponent<Bullet>();
+        bullet.SetPosition(launcher.position);
+        bullet.SetTrajectory(bullet.transform.position + transform.forward);
+    }
     #endregion
 
     #region PUBLIC METHODS
@@ -53,11 +62,11 @@ public class ShipScript : MonoBehaviour
     #endregion
 
     #region COUROUTINE FUNCTIONS
-    IEnumerator Turn_RotateAndMoveTowardTouch(Vector3 tempPoint)
+   /* IEnumerator Turn_Rotate_MoveTowardsTap(Vector3 tempPoint)
     {
         isRotating = true;
-        tempPoint -= this.transform.position;//to find distance difference btw touch position and current position.
-        tempPoint.z = transform.position.z;//Assigning z value of ship position to touch position.
+        //tempPoint -= this.transform.position;//to find distance difference btw touch position and current position.
+       // tempPoint.z = transform.position.z;//Assigning z value of ship position to touch position.
         transform.position = tempPoint;
         Quaternion startRotation = this.transform.rotation;//the rotation start point.
         Quaternion endRotation = Quaternion.LookRotation(tempPoint,Vector3.up);//this rotation will look at  touch point in an upward direction.
@@ -75,6 +84,28 @@ public class ShipScript : MonoBehaviour
 
         yield return (null);
 
+    }*/
+   IEnumerator Turn_RotateTowardsTap(Vector3 tempPoint)
+    {
+        isRotating = true;
+
+        tempPoint -= this.transform.position;//to find distance difference btw touch position and current position.
+        tempPoint.z = transform.position.z;//Assigning z value of touch position to ship position.
+        Quaternion startRotation = this.transform.rotation;//took the value of ships rotation.
+        Quaternion endRotation = Quaternion.LookRotation(tempPoint, Vector3.forward);//this rotation will look towards touch position in forward direction.
+        for (float i = 0; i < 1f; i+=Time.deltaTime)
+        {
+            transform.rotation = Quaternion.Slerp(startRotation, endRotation, i);
+            yield return (null);
+        }                                                                            // transform.rotation = (endRotation);
+     
+        transform.rotation = endRotation;
+        Shoot();
+        isRotating = false;
+        
+
+       
+      
     }
     #endregion
 

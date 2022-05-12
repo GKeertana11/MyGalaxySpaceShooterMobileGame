@@ -1,42 +1,88 @@
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class PrefabManager : MonoBehaviour
+// A struct for objects to be pooled.
+[System.Serializable]
+public class ObjectToPool
 {
-    #region SINGLETON
-    private static PrefabManager instance;
-    public static PrefabManager Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                instance = GameObject.FindObjectOfType<PrefabManager>();
-                if (instance == null)
-                {
-                    GameObject container = new GameObject("GameManager");
-                    instance = container.AddComponent<PrefabManager>();
+	public GameObject prefab;
+	public int initialCapacity;
+}
 
-                }
-            }
-            return instance;
+// Singleton for managing pools of different objects.
+public class PoolManager : MonoBehaviour
+{
 
-        }
+	#region PUBLIC VARIABLES
+	// Objects to be pooled at initialization.
+	public ObjectToPool[] prefabsToPool;
+	#endregion
 
-    }
-    #endregion
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+	#region PRIVATE VARIABLES
+	private Dictionary<string, ObjectPool> pools;
+	#endregion
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+	#region SINGLETON PATTERN
+	public static PoolManager _instance;
 
-    //also do pool manager and prefab manager.
+	public static PoolManager Instance
+	{
+		get
+		{
+			if (_instance == null)
+			{
+				_instance = GameObject.FindObjectOfType<PoolManager>();
+
+				if (_instance == null)
+				{
+					GameObject container = new GameObject("Pool Manager");
+					_instance = container.AddComponent<PoolManager>();
+				}
+			}
+
+			return _instance;
+		}
+	}
+	#endregion
+
+	#region MONOBEHAVIOUR METHODS
+	void Start()
+	{
+		for (int i = 0; i < prefabsToPool.Length; i++)
+		{
+			CreatePool(prefabsToPool[i].prefab, prefabsToPool[i].initialCapacity);
+		}
+	}
+	#endregion
+
+	#region PUBLIC METHODS
+	// Create a new pool of objects at runtime.
+	public void CreatePool(GameObject prefab, int initialCapacity)
+	{
+		if (pools == null)
+			pools = new Dictionary<string, ObjectPool>();
+
+		ObjectPool newPool = new ObjectPool(prefab, initialCapacity);
+		pools.Add(prefab.name, newPool);
+	}
+
+	// Spawn an object with the given name.
+	public GameObject Spawn(string prefabName)
+	{
+		if (!pools.ContainsKey(prefabName))//If no name then, return null
+			return null;
+
+		return pools[prefabName].Spawn();
+	}
+
+	// Recycle an object with the given name.
+	public void Recycle(string prefabName, GameObject obj)
+	{
+		if (!pools.ContainsKey(prefabName))//If no name then, return null
+			return;
+
+		pools[prefabName].Recycle(obj);
+	}
+	#endregion
 }

@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1899416319558040674}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: 08_Astroid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 1309933887246752485}
   - component: {fileID: 4983790453789065128}
   - component: {fileID: 5569398877462843515}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: asteroid_small_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
