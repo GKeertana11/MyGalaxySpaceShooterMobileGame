@@ -107,8 +107,35 @@ public class ShipScript : MonoBehaviour
        
       
     }
+
+    public void OnHit()
+    {
+        gameManager.LoseLife();
+        StartCoroutine(StartInvincibilityTimer(2.5f));
+    }
+    // Make the ship invincible for a time.
+    private IEnumerator StartInvincibilityTimer(float timeLimit)
+    {
+        GetComponent<Collider2D>().enabled = false;
+
+        SpriteRenderer spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        float timer = 0;
+        float blinkSpeed = 0.25f;
+
+        while (timer < timeLimit)
+        {
+            yield return new WaitForSeconds(blinkSpeed);
+
+            spriteRenderer.enabled = !spriteRenderer.enabled;
+            timer += blinkSpeed;
+        }
+
+        spriteRenderer.enabled = true;
+        GetComponent<Collider2D>().enabled = true;
+    }
     #endregion
 
-   
+
 
 }

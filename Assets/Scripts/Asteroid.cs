@@ -12,52 +12,57 @@ public class Asteroid : MonoBehaviour
 
 	private SpriteRenderer spriteRenderer;
 	private PolygonCollider2D polyCollider;
-	Rigidbody2D rigidbody2D;
+	Rigidbody2D rigidbody;
 
 	private int points = 100;
 	private GameManager gameManager;
 	#endregion
 
 	#region MONOBEHAVIOUR METHODS
-	void OnEnable()
+	void OnEnable()//Active on screen
 	{
-		isLarge = (Random.Range(0, 2) == 0);
+		isLarge = (Random.Range(0, 2) == 0);//if 0-true else false.
 		ResetFromPrefab();
 		ApplyForce();
 	}
 
 	void OnDisable()
 	{
-		rigidbody2D.angularVelocity = 0f;
-		rigidbody2D.velocity = Vector2.zero;
+		rigidbody.angularVelocity = 0f;
+		rigidbody.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
 	}
 
 	void Awake()
 	{
+		rigidbody = GetComponentInChildren<Rigidbody2D>();
 		gameManager = GameManager.Instance;
 		spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-		//polyCollider = (PolygonCollider2D)collider2D;
+		polyCollider = (PolygonCollider2D)GetComponentInChildren<Collider2D>();
 	}
 
 	void OnTriggerEnter2D(Collider2D collision)
 	{
-		if (collision.gameObject.layer == Constants.SHIP_LAYER_NUMBER)
+		Debug.Log("Trigger Method");
+		if (collision.gameObject.layer.ToString()== Constants.SHIP_PREFAB_NAME)
 		{
-			//collision.gameObject.GetComponent<ShipScript>().OnHit();
+			Debug.Log("Hit spaceship");
+			collision.gameObject.GetComponent<ShipScript>().OnHit();
 
 			if (!isLarge)
 				PoolManager.Instance.Recycle(Constants.ASTEROID_PREFAB_NAME, gameObject);
 			else
 				BreakApart();
 		}
-		else if (collision.gameObject.layer == Constants.BULLET_LAYER_NUMBER)
+		else if (collision.gameObject.layer.ToString()== Constants.BULLET_PREFAB_NAME)
 		{
+			Debug.Log("Hit by bullet");
 			PoolManager.Instance.Recycle(Constants.BULLET_PREFAB_NAME, collision.transform.parent.gameObject);
 
 			if (!isLarge)
 				PoolManager.Instance.Recycle(Constants.ASTEROID_PREFAB_NAME, gameObject);
 			else
-				BreakApart();
+				
+			BreakApart();
 
 			gameManager.GainPoints(points);
 		}
@@ -75,10 +80,10 @@ public class Asteroid : MonoBehaviour
 	public void ApplyForce()
 	{
 		float torque = (Random.Range(0, 2) == 0 ? -1 : 1) * RandomNormalDistributionInRange(0.5f, 4f);
-		rigidbody2D.AddTorque(torque);
+		rigidbody.AddTorque(torque);
 
 		force = new Vector2((Random.Range(0, 2) == 0 ? -1 : 1) * RandomNormalDistributionInRange(8, 50), (Random.Range(0, 2) == 0 ? -1 : 1) * RandomNormalDistributionInRange(8, 50));
-		rigidbody2D.AddForce(force);
+		rigidbody.AddForce(force);
 	}
 
 	// Set the size of an asteroid to large or small.
@@ -115,10 +120,11 @@ public class Asteroid : MonoBehaviour
 		if (isLarge)
 		{
 			GameObject prefab = PrefabManager.Instance.GetLargeAsteroidPrefab();
-			spriteRenderer.sprite = prefab.GetComponent<SpriteRenderer>().sprite;
+			spriteRenderer.sprite = prefab.GetComponentInChildren<SpriteRenderer>().sprite;
 
-		PolygonCollider2D prefabCollider = ((PolygonCollider2D)prefab.GetComponent<Collider2D>());
-			polyCollider.pathCount = prefabCollider.pathCount;
+		PolygonCollider2D prefabCollider = ((PolygonCollider2D)prefab.GetComponentInChildren<Collider2D>());
+			polyCollider.pathCount = prefabCollider.pathCount;//pathcount counts no of edges of polygoncollider. 
+			
 
 			for (int i = 0; i < prefabCollider.pathCount; i++)
 				polyCollider.SetPath(i, prefabCollider.GetPath(i));
@@ -126,21 +132,21 @@ public class Asteroid : MonoBehaviour
 		else
 		{
 			GameObject prefab = PrefabManager.Instance.GetSmallAsteroidPrefab();
-			spriteRenderer.sprite = prefab.GetComponent<SpriteRenderer>().sprite;
+			spriteRenderer.sprite = prefab.GetComponentInChildren<SpriteRenderer>().sprite;
 
-			//PolygonCollider2D prefabCollider = ((PolygonCollider2D)prefab.collider2D);
-			//polyCollider.pathCount = prefabCollider.pathCount;
+			PolygonCollider2D prefabCollider = ((PolygonCollider2D)prefab.GetComponentInChildren<Collider2D>());
+			polyCollider.pathCount = prefabCollider.pathCount;
 
-			//for (int i = 0; i < prefabCollider.pathCount; i++)
-				//polyCollider.SetPath(i, prefabCollider.GetPath(i));
+			for (int i = 0; i < prefabCollider.pathCount; i++)
+				polyCollider.SetPath(i, prefabCollider.GetPath(i));
 		}
 	}
 
 	// Get a random number in a range from a normal distribution.
 	private float RandomNormalDistributionInRange(float min, float max)
 	{
-		float mean = (min + max) / 2f;
-		float standardDeviation = (max - mean) / 3f;
+		float mean = (min + max) / 2f;//average force
+		float standardDeviation = (max - mean) / 3f;//
 
 		float rand = RandomNormalDistribution() * standardDeviation + mean;
 
